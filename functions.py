@@ -7,7 +7,13 @@ from pathlib import Path
 import csv
 import json
 
-# data = collect_historical_data("2024-10-30", "2024-11-05", group_id=2178, product_id=155663)
+with open("data.json") as f:
+    data = json.load(f)
+MAPPINGS_FILE = data.get("mappings_file")
+TRANSACTIONS_FILE = data.get("transactions_file")
+
+# collect_historical_data("2025-08-11", "2025-08-13", 24269, 628395)
+# [{'date': '2025-08-11', 'marketPrice': 14.2}, {'date': '2025-08-12', 'marketPrice': None}, {'date': '2025-08-13', 'marketPrice': 14.42}]
 def collect_historical_data(start_date_str, end_date_str, group_id, product_id):
     """
     Return a list of dicts with only date and marketPrice for the specified
@@ -95,92 +101,124 @@ def cleanup_files(archive_filename, extracted_folder):
         if os.path.exists(extracted_folder):
             shutil.rmtree(extracted_folder)
     except Exception as e:
-        print(f"  ⚠️  Warning: Could not clean up files: {e}")
-
-
-def _normalize_name(s: str) -> str:
-    if s is None:
-        return ""
-    # collapse whitespace and lowercase for more robust matching
-    return " ".join(s.split()).strip().lower()
-
-
-def enrich_transactions(transactions_csv: str = 'transactions.csv',
-                        mappings_json: str = 'mappings.json',
-                        out_csv: str = 'transactions_enriched.csv',
-                        item_field: str = 'Item') -> dict:
+        print(f"  ⚠️  Warning: Could not clean up files: {e}")    
+        
+def get_product_info_from_ids(group_id, product_id):
     """
-    Read `transactions_csv` and `mappings_json`, match each row's `item_field`
-    to a mapping `name`, and append `product_id` and `group_id` columns.
-
-    Matching is done by normalizing whitespace and case. If an exact
-    normalized match is not found, a fallback substring match is attempted
-    (mapping name in item or item in mapping name).
-
-    Returns a dict with stats: matched_count, unmatched_count, unmatched_items.
-    Writes results to `out_csv`.
+    Given group_id and product_id, return info (imageUrl, name, categoryId, and url) using the provided mappings dictionary.
     """
-    # load mappings
-    with open(mappings_json, 'r', encoding='utf-8') as f:
+    if not os.path.exists(MAPPINGS_FILE):
+        raise FileNotFoundError(f"Mappings file '{MAPPINGS_FILE}' not found.")
+
+    with open(MAPPINGS_FILE, 'r') as f:
         mappings = json.load(f)
 
-    norm_map = {}
-    for m in mappings:
-        name = m.get('name', '')
-        norm = _normalize_name(name)
-        if norm and norm not in norm_map:
-            norm_map[norm] = m
+    group_str = str(group_id)
+    product_str = str(product_id)
 
-    matched = 0
-    unmatched_items = []
-    rows_out = []
+    for mapping in mappings:
+        if mapping["group_id"] == group_str and mapping["product_id"] == product_str:
+            return {
+                'categoryId': mapping.get('categoryId'),
+                'name': mapping.get('name'),
+                'imageUrl': mapping.get('imageUrl'),
+                'url': mapping.get('url')
+            }
 
-    with open(transactions_csv, 'r', encoding='utf-8') as f:
-        reader = csv.DictReader(f)
-        fieldnames = list(reader.fieldnames or [])
-        # ensure new columns exist
-        if 'product_id' not in fieldnames:
-            fieldnames.append('product_id')
-        if 'group_id' not in fieldnames:
-            fieldnames.append('group_id')
+    return None
 
-        for row in reader:
-            item_name = row.get(item_field, '')
-            norm_item = _normalize_name(item_name)
-            found = None
+def get_product_info_from_name(product_name):
+    """
+    Given product name, return info (group_id, product_id, imageUrl, categoryId, and url) using the provided mappings dictionary.
+    """
+    if not os.path.exists(MAPPINGS_FILE):
+        raise FileNotFoundError(f"Mappings file '{MAPPINGS_FILE}' not found.")
 
-            if norm_item in norm_map:
-                found = norm_map[norm_item]
-            else:
-                # fallback: substring match (be conservative)
-                for m_norm, m in norm_map.items():
-                    if m_norm in norm_item or norm_item in m_norm:
-                        found = m
-                        break
+    with open(MAPPINGS_FILE, 'r') as f:
+        mappings = json.load(f)
 
-            if found:
-                row['product_id'] = found.get('product_id', '')
-                row['group_id'] = found.get('group_id', '')
-                matched += 1
-            else:
-                row['product_id'] = ''
-                row['group_id'] = ''
-                unmatched_items.append(item_name)
+    name = str(product_name)
 
-            rows_out.append(row)
+    for mapping in mappings:
+        if mapping["name"] == name:
+            return {
+                'group_id': mapping.get('group_id'),
+                'product_id': mapping.get('product_id'),
+                'categoryId': mapping.get('categoryId'),
+                'imageUrl': mapping.get('imageUrl'),
+                'url': mapping.get('url')
+            }
 
-    # write out enriched csv
-    with open(out_csv, 'w', encoding='utf-8', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        for r in rows_out:
-            writer.writerow(r)
+    return None    
 
-    stats = {
-        'matched_count': matched,
-        'unmatched_count': len(unmatched_items),
-        'unmatched_items': sorted(set(unmatched_items)),
-        'output_file': out_csv,
-    }
+def update_historical_price_files(start_date_str, end_date_str, group_id, product_id, output_folder='historical_prices'):
+    """
+    Update historical price files for the specified group_id and product_id
+    over the date range. Saves individual date files in output_folder.
+    Any missing dates are filled with a best-guess price using nearby known values.
+    """
+    start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+    end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
 
-    return stats
+    if start_date > end_date:
+        raise ValueError("start_date must be on or before end_date")
+
+    records = collect_historical_data(start_date_str, end_date_str, group_id, product_id)
+
+    def best_guess_price(idx):
+        price = records[idx].get('marketPrice')
+        if price is not None:
+            return price
+
+        prev_price = None
+        for j in range(idx - 1, -1, -1):
+            candidate = records[j].get('marketPrice')
+            if candidate is not None:
+                prev_price = candidate
+                break
+
+        next_price = None
+        for j in range(idx + 1, len(records)):
+            candidate = records[j].get('marketPrice')
+            if candidate is not None:
+                next_price = candidate
+                break
+
+        if prev_price is not None and next_price is not None:
+            return round((prev_price + next_price) / 2, 2)
+        if prev_price is not None:
+            return prev_price
+        if next_price is not None:
+            return next_price
+        return None
+
+    base_path = Path(output_folder) / str(group_id) / str(product_id)
+    base_path.mkdir(parents=True, exist_ok=True)
+
+    saved_files = []
+
+    for idx, record in enumerate(records):
+        date_str = record.get('date')
+        if not date_str:
+            continue  # Skip malformed entries
+
+        file_path = base_path / f"{date_str}.json"
+
+        # Ignore/overwrite any existing data for the date in range
+        if file_path.exists():
+            file_path.unlink()
+
+        payload = {
+            'date': date_str,
+            'group_id': str(group_id),
+            'product_id': str(product_id),
+            'marketPrice': best_guess_price(idx)
+        }
+
+        with open(file_path, 'w') as f:
+            json.dump(payload, f)
+
+        saved_files.append(str(file_path))
+
+    return saved_files
+

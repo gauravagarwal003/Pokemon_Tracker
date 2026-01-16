@@ -390,5 +390,61 @@
     "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/654135_200w.jpg",
     "categoryId": 3,
     "url": "https://www.tcgplayer.com/product/654135/pokemon-me02-phantasmal-flames-phantasmal-flames-pokemon-center-elite-trainer-box-exclusive"
+  },
+  {
+    "product_id": "665113",
+    "name": "Paldean Fates Great Tusk ex & Iron Treads ex Premium Collection",
+    "group_id": "23353",
+    "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/665113_200w.jpg",
+    "categoryId": 3,
+    "url": "https://www.tcgplayer.com/product/665113/pokemon-sv-paldean-fates-paldean-fates-great-tusk-ex-and-iron-treads-ex-premium-collection"
+  },
+  {
+    "product_id": "512822",
+    "name": "Paradox Rift Booster Pack",
+    "group_id": "23286",
+    "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/512822_200w.jpg",
+    "categoryId": 3,
+    "url": "https://www.tcgplayer.com/product/512822/pokemon-sv03-paradox-rift-paradox-rift-booster-pack"
+  },
+  {
+    "product_id": "624684",
+    "name": "Destined Rivals Sleeved Booster Pack",
+    "group_id": "24269",
+    "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/624684_200w.jpg",
+    "categoryId": 3,
+    "url": "https://www.tcgplayer.com/product/624684/pokemon-sv10-destined-rivals-destined-rivals-sleeved-booster-pack"
+  },
+  {
+    "product_id": "654145",
+    "name": "Phantasmal Flames Sleeved Booster Pack",
+    "group_id": "24448",
+    "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/654145_200w.jpg",
+    "categoryId": 3,
+    "url": "https://www.tcgplayer.com/product/654145/pokemon-me02-phantasmal-flames-phantasmal-flames-sleeved-booster-pack"
+  },
+  {
+    "product_id": "654154",
+    "name": "Phantasmal Flames 3 Pack Blister [Sneasel]",
+    "group_id": "24448",
+    "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/654154_200w.jpg",
+    "categoryId": 3,
+    "url": "https://www.tcgplayer.com/product/654154/pokemon-me02-phantasmal-flames-phantasmal-flames-3-pack-blister-sneasel"
+  },
+  {
+    "product_id": "654160",
+    "name": "Phantasmal Flames Booster Bundle",
+    "group_id": "24448",
+    "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/654160_200w.jpg",
+    "categoryId": 3,
+    "url": "https://www.tcgplayer.com/product/654160/pokemon-me02-phantasmal-flames-phantasmal-flames-booster-bundle"
+  },
+  {
+    "product_id": "654137",
+    "name": "Phantasmal Flames Booster Box",
+    "group_id": "24448",
+    "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/654137_200w.jpg",
+    "categoryId": 3,
+    "url": "https://www.tcgplayer.com/product/654137/pokemon-me02-phantasmal-flames-phantasmal-flames-booster-box"
   }
 ]

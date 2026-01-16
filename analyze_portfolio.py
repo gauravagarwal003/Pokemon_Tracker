@@ -21,6 +21,20 @@ def run_analysis():
     START_DATE = config.get("start_date")
     TARGET_DATE = config.get("latest_date")
     TRANSACTIONS_FILE = config.get("transactions_file", "transactions.csv")
+    MAPPINGS_FILE = config.get("mappings_file", "mappings.json")
+
+    # Load mappings for names
+    name_map = {}
+    try:
+        with open(MAPPINGS_FILE, 'r') as mf:
+            m_data = json.load(mf)
+            for item in m_data:
+                # Ensure keys match the string format used later
+                gid = str(item.get('group_id', ''))
+                pid = str(item.get('product_id', ''))
+                name_map[(gid, pid)] = item.get('name', 'Unknown')
+    except Exception as e:
+        print(f"Warning: Could not load mappings {MAPPINGS_FILE}: {e}")
 
     # 1. Load and Prepare Transactions
     print("Loading transactions...")
@@ -157,6 +171,7 @@ def run_analysis():
         if qty > 0:
             price = get_price_for_date(g_id, p_id, last_date_str)
             holdings_list.append({
+                'Product Name': name_map.get((g_id, p_id), "Unknown"),
                 'group_id': g_id,
                 'product_id': p_id,
                 'Quantity': qty,
@@ -168,7 +183,7 @@ def run_analysis():
         pd.DataFrame(holdings_list).to_csv("current_holdings.csv", index=False)
     else:
         # Create empty if nothing held
-        pd.DataFrame(columns=['group_id', 'product_id', 'Quantity', 'Latest Price', 'Total Value']).to_csv("current_holdings.csv", index=False)
+        pd.DataFrame(columns=['Product Name', 'group_id', 'product_id', 'Quantity', 'Latest Price', 'Total Value']).to_csv("current_holdings.csv", index=False)
 
 if __name__ == "__main__":
     run_analysis()

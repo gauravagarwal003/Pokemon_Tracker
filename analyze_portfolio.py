@@ -156,7 +156,49 @@ def run_analysis():
         
         output_html = "portfolio_graph.html"
         fig.write_html(output_html)
-        print(f"Success! \n - Data saved to daily_tracker.csv\n - Graph saved to {output_html}")
+
+        # --- Performance Ratio Graph ---
+        fig_ratio = go.Figure()
+        
+        # Calculate ratio safely. 
+        # If Cost Basis <= 0 (Free roll or Profitable), ratio is mathematically tricky.
+        # We will handle 0 avoid errors, but negative basis will yield negative ratios which indicate "House Money" status visually.
+        results_df['Performance Ratio'] = results_df.apply(
+            lambda row: row['Total Value'] / row['Cost Basis'] if abs(row['Cost Basis']) > 0.01 else 0.0, 
+            axis=1
+        )
+        
+        fig_ratio.add_trace(go.Scatter(
+            x=results_df['Date'], 
+            y=results_df['Performance Ratio'],
+            mode='lines',
+            name='Value / Net Investment',
+            line=dict(color='#33b5e5', width=3)
+        ))
+
+        # Add a reference line at 1.0 (Break Even)
+        fig_ratio.add_shape(
+            type="line",
+            x0=results_df['Date'].min(),
+            y0=1,
+            x1=results_df['Date'].max(),
+            y1=1,
+            line=dict(color="white", width=2, dash="dot"),
+        )
+
+        fig_ratio.update_layout(
+            title='Portfolio Performance (Value / Net Investment)',
+            xaxis_title='Date',
+            yaxis_title='Ratio (>1 = Profit)',
+            hovermode="x unified",
+            template="plotly_dark",
+            legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
+        )
+        
+        ratio_html = "performance_graph.html"
+        fig_ratio.write_html(ratio_html)
+
+        print(f"Success! \n - Data saved to daily_tracker.csv\n - Graph saved to {output_html}\n - Performance Graph saved to {ratio_html}")
     else:
         print("No daily records generated.")
     

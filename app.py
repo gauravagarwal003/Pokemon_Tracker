@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 import pandas as pd
 import os
 from datetime import datetime
@@ -156,5 +156,38 @@ def run_analysis_safe():
         print(f"Error running analysis: {e}")
         flash(f"Error updating analysis: {e}", "error")
 
+@app.route('/api/summary')
+def api_summary():
+    summary = {
+        "total_value": 0,
+        "total_cost": 0,
+        "profit": 0,
+        "items_owned": 0,
+        "date": "N/A"
+    }
+
+    # Try to read from daily_tracker.csv for the most consistent "latest" entries
+    tracker_path = os.path.join(BASE_DIR, 'daily_tracker.csv')
+    if os.path.exists(tracker_path):
+        try:
+            # Using pandas to handle CSV robustly
+            df = pd.read_csv(tracker_path)
+            if not df.empty:
+                last_row = df.iloc[-1]
+                summary["total_value"] = float(last_row['Total Value'])
+                summary["total_cost"] = float(last_row['Cost Basis'])
+                summary["profit"] = summary["total_value"] - summary["total_cost"]
+                
+                # Check if Items Owned exists (it might be a newer column)
+                if 'Items Owned' in df.columns:
+                     summary["items_owned"] = int(last_row['Items Owned']) if pd.notna(last_row['Items Owned']) else 0
+                
+                summary["date"] = str(last_row['Date'])
+        except Exception as e:
+            print(f"Error reading daily tracker: {e}")
+
+    return jsonify(summary)
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    # host='0.0.0.0' allows access from other devices on the network
+    app.run(debug=True, port=5001, host='0.0.0.0')

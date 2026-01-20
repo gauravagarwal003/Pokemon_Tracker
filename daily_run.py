@@ -3,6 +3,8 @@ import datetime
 import update_prices
 import analyze_portfolio
 import json
+import pandas as pd
+import os
 
 def update_config_date():
     """Ensure the config file allows fetching up to today."""
@@ -44,6 +46,27 @@ def main():
     except Exception as e:
         print(f"CRITICAL ERROR in Analysis: {e}")
         sys.exit(1)
+
+    # Step 3: Generate Summary JSON for Widget (Serverless)
+    print("\n>>> STEP 3: Generating Widget Summary...")
+    try:
+        if os.path.exists("daily_tracker.csv"):
+            df = pd.read_csv("daily_tracker.csv")
+            if not df.empty:
+                last_row = df.iloc[-1]
+                summary = {
+                    "total_value": float(last_row['Total Value']),
+                    "total_cost": float(last_row['Cost Basis']),
+                    "profit": float(last_row['Total Value']) - float(last_row['Cost Basis']),
+                    "date": str(last_row['Date']),
+                    "items_owned": int(last_row['Items Owned']) if 'Items Owned' in df.columns and pd.notna(last_row['Items Owned']) else 0
+                }
+
+                with open("summary.json", "w") as f:
+                    json.dump(summary, f, indent=4)
+                print("  summary.json : Created")
+    except Exception as e:
+        print(f"Error generating summary json: {e}")
 
     print("\n========================================")
     print("  UPDATE COMPLETE")

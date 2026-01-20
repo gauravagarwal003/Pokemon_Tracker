@@ -12,8 +12,8 @@ const LOCAL_URL = `http://${LOCAL_IP}:5001/api/summary`;
 
 // For GITHUB mode:
 // Replace <USERNAME> and <REPO> with your actual GitHub details
-const GITHUB_USER = "<USERNAME>"; 
-const GITHUB_REPO = "<REPO>";
+const GITHUB_USER = "gauravagarwal003"; 
+const GITHUB_REPO = "Pokemon_Sealed_Tracker";
 const GITHUB_BRANCH = "main";
 const GITHUB_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/summary.json`;
 

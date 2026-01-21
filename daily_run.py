@@ -12,9 +12,8 @@ def update_config_date():
         with open("data.json", 'r') as f:
             data = json.load(f)
         
-        # We just ensure the latest_date is not in the past
-        # Setting it to a future date is safe because the scripts clamp to datetime.now()
-        data['latest_date'] = (datetime.datetime.now() + datetime.timedelta(days=365)).strftime('%Y-%m-%d')
+        # Set latest_date to today so the data is updated up to the current date
+        data['latest_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
         
         with open("data.json", 'w') as f:
             json.dump(data, f, indent=4)

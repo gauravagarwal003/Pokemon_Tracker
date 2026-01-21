@@ -272,10 +272,21 @@ def batch_update_historical_prices(start_date_str, end_date_str, product_list, o
     while current_date <= end_date:
         date_str = current_date.strftime('%Y-%m-%d')
         
-        # Check if we should skip: simple heuristic - if we have files for this date for random product, maybe skip?
-        # For now, we force update to ensure consistency, but usually you'd check if specific files exist.
-        # Since we want to be robust, we process the day.
+        # Check if we already have data for ALL requested products
+        missing_any = False
+        for p in product_list:
+            # Construct expected path: historical_prices/{group_id}/{product_id}/{date_str}.json
+            # Note: output_folder is passed in, default 'historical_prices'
+            p_path = os.path.join(output_folder, str(p['group_id']), str(p['product_id']), f"{date_str}.json")
+            if not os.path.exists(p_path):
+                missing_any = True
+                break
         
+        if not missing_any:
+            print(f"Skipping {date_str} - All data present.")
+            current_date += timedelta(days=1)
+            continue
+
         archive_url = f"https://tcgcsv.com/archive/tcgplayer/prices-{date_str}.ppmd.7z"
         archive_filename = f"prices-{date_str}.ppmd.7z"
         extracted_folder = f"temp_extract_{date_str}" 

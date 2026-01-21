@@ -208,7 +208,8 @@ def api_summary():
         "total_cost": 0,
         "profit": 0,
         "items_owned": 0,
-        "date": "N/A"
+        "date": "N/A",
+        "history": [] 
     }
 
     # Try to read from daily_tracker.csv for the most consistent "latest" entries
@@ -228,6 +229,12 @@ def api_summary():
                      summary["items_owned"] = int(last_row['Items Owned']) if pd.notna(last_row['Items Owned']) else 0
                 
                 summary["date"] = str(last_row['Date'])
+
+                # Add last 14 days history for widget graph
+                if 'Date' in df.columns and 'Total Value' in df.columns:
+                    history_df = df.tail(14)
+                    summary["history"] = history_df[['Date', 'Total Value']].to_dict('records')
+
         except Exception as e:
             print(f"Error reading daily tracker: {e}")
 

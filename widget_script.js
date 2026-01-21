@@ -84,6 +84,18 @@ async function createWidget() {
     profitText.font = Font.boldSystemFont(18);
     profitText.textColor = profitColor;
     
+    // Graph: Check if history exists
+    if (data.history && data.history.length > 1) {
+      w.addSpacer(8);
+      // Draw graph (width: 400, height: 100)
+      let chartImg = drawChart(data.history, 400, 100, profitColor);
+      let chartStack = w.addStack();
+      chartStack.addSpacer(); // Center it
+      let img = chartStack.addImage(chartImg);
+      img.imageSize = new Size(280, 50); // Scale down for display
+      chartStack.addSpacer();
+    }
+    
     w.addSpacer();
     
     // Footer: Last Updated
@@ -111,4 +123,68 @@ async function createWidget() {
 
 function formatMoney(num) {
   return "$" + num.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function drawChart(history, width, height, lineColor) {
+  let ctx = new DrawContext()
+  ctx.size = new Size(width, height)
+  ctx.opaque = false
+  
+  // Extract values
+  let values = history.map(h => h["Total Value"])
+  let min = Math.min(...values)
+  let max = Math.max(...values)
+  let delta = max - min
+  
+  if (delta === 0) delta = 1
+
+  let path = new Path()
+  let stepX = width / (values.length - 1)
+  
+  // Points logic: Y=0 is TOP, Y=height is BOTTOM
+  // We want some padding so the line doesn't hit the absolute edge
+  let drawableHeight = height * 0.8
+  let padding = height * 0.1
+
+  let points = values.map((val, index) => {
+    let x = index * stepX
+    let fraction = (val - min) / delta
+    let y = (height - padding) - (fraction * drawableHeight)
+    return new Point(x, y)
+  })
+
+  // 1. Draw Line Stroke
+  if (points.length > 0) {
+    path.move(points[0])
+    for (let i = 1; i < points.length; i++) {
+      path.addLine(points[i])
+    }
+    ctx.addPath(path)
+    ctx.setStrokeColor(lineColor)
+    ctx.setLineWidth(5)
+    ctx.strokePath()
+  }
+
+  // 2. Draw Gradient Fill
+  if (points.length > 0) {
+    let fillPath = new Path()
+    fillPath.move(points[0])
+    for (let i = 1; i < points.length; i++) {
+        fillPath.addLine(points[i])
+    }
+    // Close shape at bottom corners
+    fillPath.addLine(new Point(width, height))
+    fillPath.addLine(new Point(0, height))
+    fillPath.closeSubpath()
+    
+    ctx.addPath(fillPath)
+    let grad = new LinearGradient()
+    grad.colors = [lineColor, new Color(lineColor.hex, 0.0)] // Fade to transparent
+    grad.locations = [0, 1]
+    grad.startPoint = new Point(0, 0)
+    grad.endPoint = new Point(0, height)
+    ctx.fillGradient(grad)
+  }
+  
+  return ctx.getImage()
 }

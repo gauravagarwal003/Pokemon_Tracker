@@ -48,6 +48,13 @@ def run_analysis(resume_date=None):
         return
 
     df['Date Recieved'] = pd.to_datetime(df['Date Recieved'])
+    
+    # Handle missing Quantity: Default to 1.0 so "OPEN" rows without quantity still work
+    if df['Quantity'].isna().any():
+        num_missing = df['Quantity'].isna().sum()
+        print(f"  - Note: {num_missing} transaction(s) missing 'Quantity'. Defaulting them to 1.0.")
+        df['Quantity'] = df['Quantity'].fillna(1.0)
+
     df['Price Per Unit'] = df['Price Per Unit'].apply(parse_currency)
     df['Total Transaction Value'] = df['Price Per Unit'] * df['Quantity']
 
@@ -71,6 +78,7 @@ def run_analysis(resume_date=None):
             existing_df = pd.read_csv("daily_tracker.csv")
             if not existing_df.empty:
                 existing_df['Date'] = pd.to_datetime(existing_df['Date'])
+                existing_df['Items Owned'] = existing_df['Items Owned'].fillna(0)
                 # Keep historical data strictly BEFORE the resume date
                 existing_df = existing_df[existing_df['Date'] < resume_dt]
                 daily_records = existing_df.to_dict('records')
@@ -165,7 +173,7 @@ def run_analysis(resume_date=None):
         summary_data["total_value"] = float(last_row['Total Value'])
         summary_data["total_cost"] = float(last_row['Cost Basis'])
         summary_data["profit"] = summary_data["total_value"] - summary_data["total_cost"]
-        summary_data["items_owned"] = int(last_row['Items Owned'])
+        summary_data["items_owned"] = int(last_row['Items Owned']) if pd.notna(last_row['Items Owned']) else 0
         try:
              summary_data["date"] = str(last_row['Date'].date())
         except:

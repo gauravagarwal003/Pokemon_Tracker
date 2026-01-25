@@ -13,8 +13,8 @@ def update_config_date():
         with open("data.json", 'r') as f:
             data = json.load(f)
         
-        # Set latest_date to today so the data is updated up to the current date
-        data['latest_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+        # Set latest_date to yesterday to ensure we have complete data (data sources often lag by 1 day)
+        data['latest_date'] = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
         
         with open("data.json", 'w') as f:
             json.dump(data, f, indent=4)

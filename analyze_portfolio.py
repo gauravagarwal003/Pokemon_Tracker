@@ -144,11 +144,19 @@ def run_analysis(resume_date=None):
                 price = get_price_for_date(g_id, p_id, date_str)
                 daily_portfolio_value += (price * quantity)
 
+        items_owned = sum(inventory.values())
+
+        # Safety Check: If value is 0 but we own items, it's likely a data error.
+        if items_owned > 0 and daily_portfolio_value == 0:
+             print(f"Skipping {date_str}: Price data likely missing (Value is $0).")
+             current_date += timedelta(days=1)
+             continue
+
         daily_records.append({
             'Date': current_date,
             'Total Value': round(daily_portfolio_value, 2),
             'Cost Basis': round(running_cost_basis, 2),
-            'Items Owned': sum(inventory.values())
+            'Items Owned': items_owned
         })
         
         current_date += timedelta(days=1)

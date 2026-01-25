@@ -1,7 +1,7 @@
 {
-  "total_value": 0.0,
+  "total_value": 7011.31,
   "total_cost": 3413.86,
-  "profit": -3413.86,
+  "profit": 3597.4500000000003,
   "items_owned": 106,
   "date": "2026-01-24",
   "history": [
@@ -59,7 +59,7 @@
     },
     {
       "Date": "2026-01-24",
-      "Total Value": 0.0
+      "Total Value": 7011.31
     }
   ]
 }

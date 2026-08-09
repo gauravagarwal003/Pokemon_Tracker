@@ -1,14 +1,14 @@
 {
-  "latest_date": "2026-08-08",
-  "previous_date": "2026-08-07",
-  "total_value": 16805.87,
+  "latest_date": "2026-08-09",
+  "previous_date": "2026-08-08",
+  "total_value": 16737.33,
   "cost_basis": 6649.92,
-  "gain_loss": 10155.95,
-  "return_pct": 152.72,
-  "day_value_change": -61.7,
+  "gain_loss": 10087.41,
+  "return_pct": 151.69,
+  "day_value_change": -68.54,
   "day_cost_basis_change": 0.0,
-  "day_gain_loss": -61.7,
-  "day_gain_loss_pct": -0.37,
+  "day_gain_loss": -68.54,
+  "day_gain_loss_pct": -0.41,
   "holdings_count": 74,
-  "updated_at": "2026-08-08T21:25:45Z"
+  "updated_at": "2026-08-09T21:27:23Z"
 }
